@@ -28,6 +28,6 @@ public class LectureDto
 
     public enum Type
     {
-        ONLINE, PRESENCE
+        ONLINE, PRESENCE, HYBRID, INVALID
     }
 }
