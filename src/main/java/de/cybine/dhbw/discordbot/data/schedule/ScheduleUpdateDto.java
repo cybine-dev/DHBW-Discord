@@ -4,9 +4,7 @@ import lombok.*;
 
 import java.util.Collection;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)

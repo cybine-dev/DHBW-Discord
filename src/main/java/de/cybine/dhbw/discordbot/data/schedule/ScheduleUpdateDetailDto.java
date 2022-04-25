@@ -2,9 +2,7 @@ package de.cybine.dhbw.discordbot.data.schedule;
 
 import lombok.*;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
