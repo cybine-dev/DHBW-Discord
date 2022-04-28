@@ -19,7 +19,7 @@ target/
 *.iml
 *.ipr
 
-!**/codeStyleConfig.xml
+
 
 ### NetBeans ###
 /nbproject/private/
