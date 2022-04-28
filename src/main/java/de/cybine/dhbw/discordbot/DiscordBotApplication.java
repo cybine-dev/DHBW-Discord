@@ -1,8 +1,10 @@
 package de.cybine.dhbw.discordbot;
 
 import de.cybine.dhbw.discordbot.config.BotConfig;
+import de.cybine.dhbw.discordbot.util.event.EventManager;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
+import discord4j.core.event.domain.Event;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;
@@ -25,17 +27,23 @@ public class DiscordBotApplication
     @NonNull
     private final BotConfig botConfig;
 
+    @NonNull
+    private final EventManager eventManager;
+
     private DiscordClient        client;
     private GatewayDiscordClient gateway;
 
     @PostConstruct
-    public void startBot( )
+    private void startBot( )
     {
         this.client = DiscordClient.create(this.botConfig.botToken());
         this.gateway = this.client.login().block();
 
-        if (this.gateway != null)
-            this.gateway.onDisconnect().block();
+        if (this.gateway == null)
+            return;
+
+        this.gateway.on(Event.class).subscribe(event -> this.eventManager.handle(manager -> event));
+        this.gateway.onDisconnect().block();
     }
 
     @Bean
