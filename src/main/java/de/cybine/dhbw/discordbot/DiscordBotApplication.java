@@ -1,6 +1,8 @@
 package de.cybine.dhbw.discordbot;
 
 import de.cybine.dhbw.discordbot.config.BotConfig;
+import de.cybine.dhbw.discordbot.config.StuvApiConfig;
+import de.cybine.dhbw.discordbot.service.stuvapi.ScheduleService;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
@@ -29,6 +31,9 @@ public class DiscordBotApplication
 
     @NonNull
     private final EventManager eventManager;
+
+    @NonNull
+    private final ScheduleService scheduleService;
 
     private DiscordClient        client;
     private GatewayDiscordClient gateway;

@@ -157,7 +157,7 @@ public class StuvAPI
         LectureDto.LectureDtoBuilder builder = LectureDto.builder();
 
 
-        builder.id(((Double) lectureDetails.getOrDefault("id", -1)).longValue());
+        builder.lectureId(((Double) lectureDetails.getOrDefault("id", -1)).longValue());
 
         builder.createdAt(LocalDateTime.parse((String) lectureDetails.getOrDefault("date", "1970-01-01T00:00:00.000Z"),
                 DateTimeFormatter.ISO_DATE_TIME));
