@@ -1,17 +1,19 @@
 package de.cybine.dhbw.discordbot.data.schedule;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
-@Entity(name = "lecture_room_relations")
+@Entity
+@Table(name = "lecture_room_relations")
 public class LectureRoomRelation
 {
     @Id
+    @GeneratedValue
+    @Column(name = "id")
+    private long id;
+
     @Column(name = "lecture_id")
     private long lectureId;
 
-    @Id
-    @Column(name = "room_id")
-    private long roomId;
+    @Column(name = "room_name")
+    private long roomName;
 }

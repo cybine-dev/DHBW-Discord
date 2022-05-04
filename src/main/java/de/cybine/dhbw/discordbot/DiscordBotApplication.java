@@ -1,17 +1,13 @@
 package de.cybine.dhbw.discordbot;
 
-import de.cybine.dhbw.discordbot.config.BotConfig;
-import de.cybine.dhbw.discordbot.config.StuvApiConfig;
-import de.cybine.dhbw.discordbot.service.stuvapi.ScheduleService;
-import de.cybine.dhbw.discordbot.util.event.EventManager;
-import discord4j.core.DiscordClient;
+import de.cybine.dhbw.discordbot.service.event.EventManagement;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -19,47 +15,26 @@ import javax.annotation.PostConstruct;
 @Component
 @SpringBootApplication
 @RequiredArgsConstructor
+@EnableJpaRepositories(basePackages = { "de.cybine.dhbw.discordbot" })
 public class DiscordBotApplication
 {
     public static void main(String[] args)
     {
-        SpringApplication.run(DiscordBotApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(DiscordBotApplication.class, args);
+        context.getBean(GatewayDiscordClient.class).onDisconnect().block();
     }
 
-    @NonNull
-    private final BotConfig botConfig;
+    private final EventManagement eventManagement;
 
-    @NonNull
-    private final EventManager eventManager;
-
-    @NonNull
-    private final ScheduleService scheduleService;
-
-    private DiscordClient        client;
-    private GatewayDiscordClient gateway;
+    private final GatewayDiscordClient gateway;
 
     @PostConstruct
     private void startBot( )
     {
-        this.client = DiscordClient.create(this.botConfig.botToken());
-        this.gateway = this.client.login().block();
-
         if (this.gateway == null)
             return;
 
-        this.gateway.on(Event.class).subscribe(event -> this.eventManager.handle(manager -> event));
-        this.gateway.onDisconnect().block();
-    }
-
-    @Bean
-    public DiscordClient getClient( )
-    {
-        return client;
-    }
-
-    @Bean
-    public GatewayDiscordClient getGateway( )
-    {
-        return gateway;
+        this.gateway.on(Event.class)
+                .subscribe(event -> this.eventManagement.getEventManager().handle(manager -> event));
     }
 }

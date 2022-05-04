@@ -1,9 +1,6 @@
 package de.cybine.dhbw.discordbot.data.schedule;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -11,16 +8,22 @@ import javax.persistence.*;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "rooms")
 @Builder(toBuilder = true)
-@Table(name = "rooms", indexes = @Index(name = "room_index_name", columnList = "name"))
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class RoomDto
 {
     @Id
-    @GeneratedValue
-    @Column(name = "id")
-    private long id;
-
-    @Id
+    @EqualsAndHashCode.Include
     @Column(name = "name", nullable = false, unique = true)
     private String name;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "room")
+    private String room;
+
+    @Column(name = "floor")
+    private int floor;
 }
