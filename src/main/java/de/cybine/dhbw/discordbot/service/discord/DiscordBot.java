@@ -13,15 +13,18 @@ import javax.annotation.PostConstruct;
 @RequiredArgsConstructor
 public class DiscordBot
 {
-    private final BotConfig     botConfig;
+    private final BotConfig botConfig;
 
-    private       DiscordClient client;
+    private DiscordClient        client;
     private GatewayDiscordClient gateway;
 
+    private Long clientId;
+
     @PostConstruct
-    private void setup()
+    private void setup( )
     {
         this.client = DiscordClient.create(this.botConfig.botToken());
+        this.clientId = this.client.getApplicationId().block();
         this.gateway = this.client.login().block();
     }
 
@@ -35,5 +38,11 @@ public class DiscordBot
     public GatewayDiscordClient getGateway( )
     {
         return this.gateway;
+    }
+
+    @Bean(name = "applicationId")
+    public Long getClientId( )
+    {
+        return this.clientId;
     }
 }

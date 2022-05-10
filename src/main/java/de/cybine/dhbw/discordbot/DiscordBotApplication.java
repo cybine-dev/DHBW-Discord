@@ -1,5 +1,6 @@
 package de.cybine.dhbw.discordbot;
 
+import de.cybine.dhbw.discordbot.command.EchoCommand;
 import de.cybine.dhbw.discordbot.service.event.EventManagement;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -36,5 +37,7 @@ public class DiscordBotApplication
 
         this.gateway.on(Event.class)
                 .subscribe(event -> this.eventManagement.getEventManager().handle(manager -> event));
+
+        new EchoCommand(this.gateway, this.eventManagement.getEventManager()).register();
     }
 }
