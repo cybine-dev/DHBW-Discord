@@ -82,6 +82,7 @@ public class StuvAPI
             builder.newCount(((Double) latestSync.getOrDefault("newCount", -1.0)).intValue());
             builder.removeCount(((Double) latestSync.getOrDefault("removedCount", -1.0)).intValue());
 
+            latestSyncs.add(builder.build());
         }
 
         return latestSyncs;
@@ -92,7 +93,6 @@ public class StuvAPI
         URI uri = URI.create(String.format("%s/%s/%s", this.config.stuvApiUrl(), "sync", syncID));
 
         Map<String, Object> result = this.gson.fromJson(this.performHTTPRequest(uri).body(), Map.class);
-        ScheduleSyncDetailDto syncDetails = new ScheduleSyncDetailDto();
 
         ScheduleSyncDetailDto.ScheduleSyncDetailDtoBuilder builder = ScheduleSyncDetailDto.builder();
 
@@ -109,8 +109,7 @@ public class StuvAPI
         builder.removedLectures(this.parseLectureResponse((List<Object>) result.get("removedLectures")));
         builder.updatedLectures(this.parseUpdatedLectures((List<Object>) result.get("updatedLectures")));
 
-
-        return syncDetails;
+        return builder.build();
     }
 
     private HttpResponse<String> performHTTPRequest(URI uri)
@@ -139,7 +138,7 @@ public class StuvAPI
 
     private Collection<LectureDto> parseLectureResponse(String json)
     {
-        return this.parseLectureResponse(this.gson.fromJson(json, List.class));
+        return this.parseLectureResponse((List<Object>) this.gson.fromJson(json, List.class));
     }
 
     private Collection<LectureDto> parseLectureResponse(List<Object> lectureData)
@@ -149,13 +148,8 @@ public class StuvAPI
 
     private LectureDto parseLectureResponse(Object lectureData)
     {
-
-        LectureDto lecture = new LectureDto();
-
         Map<String, Object> lectureDetails = (Map<String, Object>) lectureData;
-
         LectureDto.LectureDtoBuilder builder = LectureDto.builder();
-
 
         builder.id(((Double) lectureDetails.getOrDefault("id", -1)).longValue());
 
@@ -172,10 +166,11 @@ public class StuvAPI
         builder.type(LectureDto.Type.valueOf((String) lectureDetails.getOrDefault("type",
                 LectureDto.Type.INVALID.name())));
 
-        builder.rooms((List<String>) lectureDetails.getOrDefault("rooms", Collections.EMPTY_LIST));
+        builder.rooms(((List<String>) lectureDetails.getOrDefault("rooms", Collections.EMPTY_LIST)).stream()
+                .map(room -> RoomDto.builder().name(room).build())
+                .toList());
 
-        return lecture;
-
+        return builder.build();
     }
 
     private Collection<ScheduleUpdateDetailDto> parseUpdateDetailsResponse(List<Object> changeData)
@@ -184,7 +179,6 @@ public class StuvAPI
         for (Object obj : changeData)
         {
             Map<String, Object> changeInfo = (Map<String, Object>) obj;
-
             ScheduleUpdateDetailDto.ScheduleUpdateDetailDtoBuilder builder = ScheduleUpdateDetailDto.builder();
 
             builder.id(((Double) changeInfo.getOrDefault("id", -1.0)).longValue());
@@ -194,7 +188,10 @@ public class StuvAPI
 
             builder.previousValue((String) changeInfo.getOrDefault("previousValue", "Vorher"));
             builder.newValue((String) changeInfo.getOrDefault("value", "Nachher"));
+
+            changeInfos.add(builder.build());
         }
+
         return changeInfos;
     }
 
@@ -205,16 +202,15 @@ public class StuvAPI
         for (Object obj : updatedLecturesData)
         {
             Map<String, Object> updatedLecture = (Map<String, Object>) obj;
-
             ScheduleUpdateDto.ScheduleUpdateDtoBuilder builder = ScheduleUpdateDto.builder();
 
             builder.id(((Double) updatedLecture.getOrDefault("id", -1.0)).longValue());
-
             builder.lecture(this.parseLectureResponse(updatedLecture.get("lecture")));
-
             builder.changeInfo(this.parseUpdateDetailsResponse((List<Object>) updatedLecture.get("changeInfos")));
 
+            updatedLectures.add(builder.build());
         }
+
         return updatedLectures;
     }
 
