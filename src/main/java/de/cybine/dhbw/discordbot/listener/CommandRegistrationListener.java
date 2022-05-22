@@ -6,11 +6,9 @@ import de.cybine.dhbw.discordbot.util.event.EventHandler;
 import de.cybine.dhbw.discordbot.util.event.IEventListener;
 import discord4j.core.DiscordClient;
 import discord4j.discordjson.json.ApplicationCommandData;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.EventListener;
 import java.util.List;
 
 @Component
@@ -32,7 +30,6 @@ public class CommandRegistrationListener implements IEventListener
     @EventHandler
     public void onCommandRegistration(CommandRegistrationEvent event)
     {
-        System.out.println("Testlzl");
         new Thread(( ) ->
         {
             List<ApplicationCommandData> commandData = this.client.getApplicationService()
