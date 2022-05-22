@@ -1,6 +1,7 @@
 package de.cybine.dhbw.discordbot.command;
 
 import de.cybine.dhbw.discordbot.data.schedule.LectureDto;
+import de.cybine.dhbw.discordbot.data.schedule.RoomDto;
 import de.cybine.dhbw.discordbot.repository.stuvapi.ILectureDao;
 import de.cybine.dhbw.discordbot.service.stuvapi.event.CommandRegistrationEvent;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
@@ -8,21 +9,32 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import discord4j.rest.util.Color;
 import lombok.AllArgsConstructor;
 
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
-public class DisplayScheduleCommand {
+public class DisplayScheduleCommand
+{
     private final GatewayDiscordClient gateway;
-
-    private final EventManager eventManager;
+    private final EventManager         eventManager;
 
     private final ILectureDao lectureDao;
 
-    public void register() {
+    public void register( )
+    {
         this.eventManager.handle(manager -> new CommandRegistrationEvent(ApplicationCommandRequest.builder()
                 .name("schedule")
                 .description("Displays schedule for one day")
@@ -35,28 +47,68 @@ public class DisplayScheduleCommand {
                         .build())
                 .build()));
 
-        this.gateway.on(ChatInputInteractionEvent.class)
-                .subscribe(this::chatInputInteraction
-                );
-
+        this.gateway.on(ChatInputInteractionEvent.class).subscribe(this::onCommand);
     }
 
-    private void chatInputInteraction(ChatInputInteractionEvent chatInputInteractionEvent) {
-        List<LectureDto> currentLectures = lectureDao.findByStartDate(chatInputInteractionEvent.getOption("date")
-                .flatMap(ApplicationCommandInteractionOption::getValue)
-                .map(ApplicationCommandInteractionOptionValue::asString)
-                .orElseThrow());
+    private void onCommand(ChatInputInteractionEvent event)
+    {
+        if (!event.getCommandName().equals("schedule"))
+            return;
 
-        StringBuilder lectures = new StringBuilder();
-        for (LectureDto lectureDto : currentLectures) {
+        try
+        {
+            String date = event.getOption("date")
+                    .flatMap(ApplicationCommandInteractionOption::getValue)
+                    .map(ApplicationCommandInteractionOptionValue::asString)
+                    .orElseThrow();
 
-            lectures.append(lectureToString(lectureDto)).append("\n");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            LocalDate fromDate = LocalDate.parse(date, formatter);
+            LocalDate toDate = fromDate.plus(1, ChronoUnit.DAYS);
+
+            List<LectureDto> lectures = this.lectureDao.findByStartDate(fromDate.atStartOfDay(), toDate.atStartOfDay());
+            if (lectures.isEmpty())
+            {
+                event.reply(String.format("Es wurden keine Vorlesungen für den %s gefunden.", date)).subscribe();
+                return;
+            }
+
+            event.reply(InteractionApplicationCommandCallbackSpec.builder()
+                    .embeds(lectures.stream().map(this::lectureToString).toList())
+                    .build()).subscribe();
         }
-
-        chatInputInteractionEvent.reply(String.format(lectures.toString()));
+        catch (NoSuchElementException exception)
+        {
+            event.reply(InteractionApplicationCommandCallbackSpec.builder()
+                    .content("Invalid parameters. Parameter date missing!")
+                    .ephemeral(true)
+                    .build()).subscribe();
+        }
+        catch (DateTimeException exception)
+        {
+            event.reply(InteractionApplicationCommandCallbackSpec.builder()
+                    .content("Invalid date supplied. Required format: dd.MM.yyyy")
+                    .ephemeral(true)
+                    .build()).subscribe();
+        }
     }
 
-    private String lectureToString(LectureDto lectureDto) {
-        return " Name: " + lectureDto.getName() + " Start: " + lectureDto.getStartsAt() + " Ende: " + lectureDto.getEndsAt();
+    private EmbedCreateSpec lectureToString(LectureDto lectureDto)
+    {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy kk:mm");
+        return EmbedCreateSpec.builder()
+                .title(lectureDto.getName())
+                .addField("Beginn", lectureDto.getStartsAt().format(formatter), true)
+                .addField("Ende", lectureDto.getEndsAt().format(formatter), true)
+                .addField("Räume",
+                        lectureDto.getRooms().stream().map(RoomDto::getName).collect(Collectors.joining(", ")),
+                        false)
+                .color(lectureDto.getType() == LectureDto.Type.ONLINE ? Color.BLUE : Color.ORANGE)
+                .timestamp(Instant.now())
+                .author("Cybine",
+                        null,
+                        "https://cdn.discordapp.com/avatars/801905875543392267/13f8dd94bc23e5ad3525addad54345b6.webp")
+                .footer("Powered by StuvAPI", null)
+                .build();
     }
 }
