@@ -7,4 +7,4 @@ FROM openjdk:17-alpine
 WORKDIR /opt/app
 COPY --from=build /opt/app/target/discord-bot.jar /opt/app
 EXPOSE 8080
-ENTRYPOINT [ "java", "-jar", "discord-bot"]
+ENTRYPOINT [ "java", "-jar", "discord-bot.jar" ]
