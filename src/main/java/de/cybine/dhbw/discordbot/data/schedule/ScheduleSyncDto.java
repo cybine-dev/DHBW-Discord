@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 public class ScheduleSyncDto
 {
     @Id
-    @GeneratedValue
     @Column(name = "id")
     private long id;
 

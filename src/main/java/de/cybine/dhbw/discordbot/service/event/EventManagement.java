@@ -1,5 +1,6 @@
 package de.cybine.dhbw.discordbot.service.event;
 
+import de.cybine.dhbw.discordbot.listener.CommandRegistrationListener;
 import de.cybine.dhbw.discordbot.listener.StuvApiListener;
 import de.cybine.dhbw.discordbot.util.event.EventGroup;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
@@ -16,10 +17,13 @@ public class EventManagement
 
     private final StuvApiListener stuvApiListener;
 
-    public EventManagement(final EventManager eventManager, final StuvApiListener stuvApiListener)
+    private final CommandRegistrationListener commandRegistrationListener;
+
+    public EventManagement(final EventManager eventManager, final StuvApiListener stuvApiListener, CommandRegistrationListener commandRegistrationListener)
     {
         this.eventManager = eventManager;
         this.stuvApiListener = stuvApiListener;
+        this.commandRegistrationListener = commandRegistrationListener;
 
         this.setup();
     }
@@ -39,5 +43,6 @@ public class EventManagement
     private void registerHandlers( )
     {
         this.eventManager.registerHandlers(eventManager -> this.stuvApiListener);
+        this.eventManager.registerHandlers(eventManager -> this.commandRegistrationListener);
     }
 }

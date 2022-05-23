@@ -3,14 +3,16 @@ package de.cybine.dhbw.discordbot.listener;
 import de.cybine.dhbw.discordbot.config.BotConfig;
 import de.cybine.dhbw.discordbot.service.stuvapi.event.CommandRegistrationEvent;
 import de.cybine.dhbw.discordbot.util.event.EventHandler;
+import de.cybine.dhbw.discordbot.util.event.IEventListener;
 import discord4j.core.DiscordClient;
 import discord4j.discordjson.json.ApplicationCommandData;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
-import java.util.EventListener;
 import java.util.List;
 
-public class CommandRegistrationListener implements EventListener
+@Component
+public class CommandRegistrationListener implements IEventListener
 {
     private final Long applicationId;
 

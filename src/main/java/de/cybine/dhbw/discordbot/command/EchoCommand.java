@@ -30,12 +30,19 @@ public class EchoCommand
                         .build())
                 .build()));
 
-        this.gateway.on(ChatInputInteractionEvent.class)
-                .subscribe(event -> event.reply(String.format("%s wrote: %s",
-                        event.getInteraction().getUser().getMention(),
-                        event.getOption("message")
-                                .flatMap(ApplicationCommandInteractionOption::getValue)
-                                .map(ApplicationCommandInteractionOptionValue::asString)
-                                .orElse("no message"))).withEphemeral(true).block());
+        this.gateway.on(ChatInputInteractionEvent.class).subscribe(this::onCommand);
+    }
+
+    private void onCommand(ChatInputInteractionEvent event)
+    {
+        if (!event.getCommandName().equals("echo"))
+            return;
+
+        event.reply(String.format("%s wrote: %s",
+                event.getInteraction().getUser().getMention(),
+                event.getOption("message")
+                        .flatMap(ApplicationCommandInteractionOption::getValue)
+                        .map(ApplicationCommandInteractionOptionValue::asString)
+                        .orElse("no message"))).withEphemeral(true).block();
     }
 }

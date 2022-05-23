@@ -25,6 +25,7 @@ public class LectureDto
     private LocalDateTime createdAt;
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startsAt;
+    @Column(name = "ends_at")
     private LocalDateTime endsAt;
 
     @Column(name = "name", nullable = false)

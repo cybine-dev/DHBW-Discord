@@ -15,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -70,10 +71,8 @@ public class StuvAPI
 
             builder.id(((Double) latestSync.getOrDefault("id", -1)).intValue());
 
-            builder.startedAt(LocalDateTime.parse((String) latestSync.getOrDefault("startTime",
-                    "1970-01-01T00:00:00.000Z"), DateTimeFormatter.ISO_DATE_TIME));
-            builder.endedAt(LocalDateTime.parse((String) latestSync.getOrDefault("endTime", "1970-01-01T00:00:00.000Z"),
-                    DateTimeFormatter.ISO_DATE_TIME));
+            builder.startedAt(this.parseLocalDateTime((String) latestSync.get("startTime")));
+            builder.endedAt(this.parseLocalDateTime((String) latestSync.get("endTime")));
 
             builder.status((String) latestSync.getOrDefault("status", "0000"));
             builder.hasChanges((Boolean) latestSync.getOrDefault("hasChanges", false));
@@ -98,12 +97,10 @@ public class StuvAPI
 
         builder.id(((Double) result.getOrDefault("id", -1)).intValue());
 
-        builder.startedAt(LocalDateTime.parse((String) result.getOrDefault("startTime", "1970-01-01T00:00:00.000Z"),
-                DateTimeFormatter.ISO_DATE_TIME));
-        builder.endedAt(LocalDateTime.parse((String) result.getOrDefault("endTime", "1970-01-01T00:00:00.000Z"),
-                DateTimeFormatter.ISO_DATE_TIME));
+        builder.startedAt(this.parseLocalDateTime((String) result.get("startTime")));
+        builder.endedAt(this.parseLocalDateTime((String) result.get("endTime")));
 
-        builder.status((String) result.getOrDefault("status", "failed"));
+        builder.status((String) result.get("status"));
 
         builder.newLectures(this.parseLectureResponse((List<Object>) result.get("newLectures")));
         builder.removedLectures(this.parseLectureResponse((List<Object>) result.get("removedLectures")));
@@ -136,6 +133,17 @@ public class StuvAPI
 
     }
 
+    private LocalDateTime parseLocalDateTime(String date)
+    {
+        if (date == null)
+            return null;
+
+        return LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME)
+                .atZone(ZoneId.of("UTC"))
+                .withZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
     private Collection<LectureDto> parseLectureResponse(String json)
     {
         return this.parseLectureResponse((List<Object>) this.gson.fromJson(json, List.class));
@@ -153,18 +161,14 @@ public class StuvAPI
 
         builder.id(((Double) lectureDetails.getOrDefault("id", -1)).longValue());
 
-        builder.createdAt(LocalDateTime.parse((String) lectureDetails.getOrDefault("date", "1970-01-01T00:00:00.000Z"),
-                DateTimeFormatter.ISO_DATE_TIME));
-        builder.startsAt(LocalDateTime.parse((String) lectureDetails.getOrDefault("startTime",
-                "1970-01-01T00:00:00.000Z"), DateTimeFormatter.ISO_DATE_TIME));
-        builder.endsAt(LocalDateTime.parse((String) lectureDetails.getOrDefault("endTime", "1970-01-01T00:00:00.000Z"),
-                DateTimeFormatter.ISO_DATE_TIME));
+        builder.createdAt(this.parseLocalDateTime((String) lectureDetails.get("date")));
+        builder.startsAt(this.parseLocalDateTime((String) lectureDetails.get("startTime")));
+        builder.endsAt(this.parseLocalDateTime((String) lectureDetails.get("endTime")));
 
-        builder.name((String) lectureDetails.getOrDefault("name", "no data"));
-        builder.course((String) lectureDetails.getOrDefault("course", "ABC-DEFG21"));
-        builder.lecturer((String) lectureDetails.getOrDefault("lecturer", "no data"));
-        builder.type(LectureDto.Type.valueOf((String) lectureDetails.getOrDefault("type",
-                LectureDto.Type.INVALID.name())));
+        builder.name((String) lectureDetails.get("name"));
+        builder.course((String) lectureDetails.get("course"));
+        builder.lecturer((String) lectureDetails.get("lecturer"));
+        builder.type(LectureDto.Type.valueOf((String) lectureDetails.get("type")));
 
         builder.rooms(((List<String>) lectureDetails.getOrDefault("rooms", Collections.EMPTY_LIST)).stream()
                 .map(room -> RoomDto.builder().name(room).build())
@@ -183,11 +187,11 @@ public class StuvAPI
 
             builder.id(((Double) changeInfo.getOrDefault("id", -1.0)).longValue());
 
-            builder.fieldName((String) changeInfo.getOrDefault("fieldName", "Name"));
-            builder.fieldType((String) changeInfo.getOrDefault("fieldType", "Typ"));
+            builder.fieldName((String) changeInfo.get("fieldName"));
+            builder.fieldType((String) changeInfo.get("fieldType"));
 
-            builder.previousValue((String) changeInfo.getOrDefault("previousValue", "Vorher"));
-            builder.newValue((String) changeInfo.getOrDefault("value", "Nachher"));
+            builder.previousValue((String) changeInfo.get("previousValue"));
+            builder.newValue((String) changeInfo.get("value"));
 
             changeInfos.add(builder.build());
         }

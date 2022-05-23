@@ -1,6 +1,8 @@
 package de.cybine.dhbw.discordbot;
 
+import de.cybine.dhbw.discordbot.command.DisplayScheduleCommand;
 import de.cybine.dhbw.discordbot.command.EchoCommand;
+import de.cybine.dhbw.discordbot.repository.stuvapi.ILectureDao;
 import de.cybine.dhbw.discordbot.service.event.EventManagement;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -29,6 +31,8 @@ public class DiscordBotApplication
 
     private final GatewayDiscordClient gateway;
 
+    private final ILectureDao lectureDao;
+
     @PostConstruct
     private void startBot( )
     {
@@ -39,5 +43,6 @@ public class DiscordBotApplication
                 .subscribe(event -> this.eventManagement.getEventManager().handle(manager -> event));
 
         new EchoCommand(this.gateway, this.eventManagement.getEventManager()).register();
+        new DisplayScheduleCommand(this.gateway, this.eventManagement.getEventManager(), lectureDao).register();
     }
 }
