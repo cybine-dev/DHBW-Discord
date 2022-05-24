@@ -6,6 +6,7 @@ import de.cybine.dhbw.discordbot.data.schedule.*;
 import de.cybine.dhbw.discordbot.repository.stuvapi.ILectureDao;
 import de.cybine.dhbw.discordbot.repository.stuvapi.IRoomDao;
 import de.cybine.dhbw.discordbot.repository.stuvapi.IScheduleSyncDao;
+import de.cybine.dhbw.discordbot.service.stuvapi.event.ScheduleUpdateEvent;
 import de.cybine.dhbw.discordbot.service.stuvapi.event.request.StuvApiLectureRequestEvent;
 import de.cybine.dhbw.discordbot.service.stuvapi.event.response.StuvApiLectureResponseEvent;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
@@ -97,6 +98,9 @@ public class ScheduleService
                     .filter(this::filterOnlyConfiguredCourse)
                     .forEach(this.lectureRepository::save);
         }
+
+        if (!updatedLectures.isEmpty())
+            this.eventManager.handle(manager -> new ScheduleUpdateEvent(updatedLectures));
 
         ScheduleService.log.debug("Lecture updates applied.");
         return updatedLectures;

@@ -27,4 +27,14 @@ public class BotConfig
     {
         return Snowflake.of(this.env.getRequiredProperty("bot.channel.test", Long.class));
     }
+
+    public Snowflake notificationChannelId( )
+    {
+        return Snowflake.of(this.env.getRequiredProperty("bot.channel.notification", Long.class));
+    }
+
+    public Snowflake notificationRoleId( )
+    {
+        return Snowflake.of(this.env.getRequiredProperty("bot.role.notification", Long.class));
+    }
 }
