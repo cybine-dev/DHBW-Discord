@@ -96,19 +96,29 @@ public class DisplayScheduleCommand
     private EmbedCreateSpec lectureToString(LectureDto lectureDto)
     {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy kk:mm");
-        return EmbedCreateSpec.builder()
+        EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder()
                 .title(lectureDto.getName())
                 .addField("Beginn", lectureDto.getStartsAt().format(formatter), true)
                 .addField("Ende", lectureDto.getEndsAt().format(formatter), true)
-                .addField("Räume",
-                        lectureDto.getRooms().stream().map(RoomDto::getName).collect(Collectors.joining(", ")),
-                        false)
-                .color(lectureDto.getType() == LectureDto.Type.ONLINE ? Color.BLUE : Color.ORANGE)
                 .timestamp(Instant.now())
                 .author("Cybine",
                         null,
                         "https://cdn.discordapp.com/avatars/801905875543392267/13f8dd94bc23e5ad3525addad54345b6.webp")
-                .footer("Powered by StuvAPI", null)
-                .build();
+                .footer("Powered by StuvAPI", null);
+
+        switch (lectureDto.getType())
+        {
+            case ONLINE -> builder.color(Color.BLUE);
+            case HYBRID -> builder.color(Color.DEEP_LILAC);
+            default -> builder.color(Color.ORANGE);
+        }
+
+        if (!lectureDto.getRooms().isEmpty())
+            builder.addField("Räume",
+                    lectureDto.getRooms().stream().map(RoomDto::getName).collect(Collectors.joining("\n")),
+                    false);
+
+
+        return builder.build();
     }
 }
