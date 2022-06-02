@@ -20,11 +20,6 @@ public @interface EventHandler
     int priority( ) default 100;
 
     /**
-     * @return true if event should ignore cancel state
-     */
-    boolean ignoreCanceled( ) default false;
-
-    /**
      * @return true if only events of the exact class should be handled otherwise the handler reacts to all events
      *         implementing from the given class too
      */

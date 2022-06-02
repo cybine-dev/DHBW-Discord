@@ -33,11 +33,6 @@ public record EventHandlerInfo(IEventListener listener, Method method)
         return this.info().priority();
     }
 
-    public boolean ignoreCanceled( )
-    {
-        return this.info().ignoreCanceled();
-    }
-
     public boolean matchExact( )
     {
         return this.info().matchExact();
