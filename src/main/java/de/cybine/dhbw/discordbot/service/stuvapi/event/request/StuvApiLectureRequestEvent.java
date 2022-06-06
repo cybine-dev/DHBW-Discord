@@ -1,21 +1,28 @@
 package de.cybine.dhbw.discordbot.service.stuvapi.event.request;
 
-import lombok.AccessLevel;
+import de.cybine.dhbw.discordbot.util.event.custom.CloudEventInfo;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Optional;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@CloudEventInfo(name = "stuv-api-lecture-request")
 public class StuvApiLectureRequestEvent implements IStuvApiRequestEvent
 {
-    private final boolean includeArchived;
-    private final String  course;
+    private boolean includeArchived;
+    private String  course;
 
     @Setter
     private boolean canceled;
+
+    private StuvApiLectureRequestEvent(boolean includeArchived, String course)
+    {
+        this.includeArchived = includeArchived;
+        this.course = course;
+    }
 
     public Optional<String> getCourse( )
     {

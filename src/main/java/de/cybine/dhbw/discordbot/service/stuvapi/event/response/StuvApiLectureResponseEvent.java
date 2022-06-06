@@ -1,24 +1,34 @@
 package de.cybine.dhbw.discordbot.service.stuvapi.event.response;
 
 import de.cybine.dhbw.discordbot.data.schedule.LectureDto;
-import lombok.AccessLevel;
+import de.cybine.dhbw.discordbot.util.event.custom.CloudEventInfo;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@CloudEventInfo(name = "stuv-api-lecture-response")
 public class StuvApiLectureResponseEvent implements IStuvApiResponseEvent
 {
-    private final boolean includeArchived;
-    private final String  course;
+    private boolean includeArchived;
+    private String  course;
 
-    private final LocalDateTime executedAt;
+    private LocalDateTime executedAt;
 
-    private final Collection<LectureDto> lectures;
+    private Collection<LectureDto> lectures;
+
+    private StuvApiLectureResponseEvent(boolean includeArchived, String course, LocalDateTime executedAt,
+            Collection<LectureDto> lectures)
+    {
+        this.includeArchived = includeArchived;
+        this.course = course;
+        this.executedAt = executedAt;
+        this.lectures = lectures;
+    }
 
     public Optional<String> getCourse( )
     {
