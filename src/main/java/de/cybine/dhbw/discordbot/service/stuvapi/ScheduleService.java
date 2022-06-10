@@ -15,16 +15,18 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Log4j2
 @Component
 @RequiredArgsConstructor
 public class ScheduleService
 {
-    private final StuvApiConfig stuvApiConfig;
-    private final StuvAPI       stuvAPI;
-    private final EventManager  eventManager;
+    private final StuvApiConfig        stuvApiConfig;
+    private final StuvAPI              stuvAPI;
+    private final EventManager         eventManager;
 
     private final IRoomDao         roomRepository;
     private final ILectureDao      lectureRepository;
