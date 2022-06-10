@@ -2,7 +2,9 @@ package de.cybine.dhbw.discordbot;
 
 import de.cybine.dhbw.discordbot.command.DisplayScheduleCommand;
 import de.cybine.dhbw.discordbot.command.EchoCommand;
+import de.cybine.dhbw.discordbot.command.PollCommand;
 import de.cybine.dhbw.discordbot.repository.stuvapi.ILectureDao;
+import de.cybine.dhbw.discordbot.repository.stuvapi.IPollsDao;
 import de.cybine.dhbw.discordbot.service.event.EventManagement;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -32,6 +34,7 @@ public class DiscordBotApplication
     private final GatewayDiscordClient gateway;
 
     private final ILectureDao lectureDao;
+    private final IPollsDao pollsDao;
 
     @PostConstruct
     private void startBot( )
@@ -44,5 +47,6 @@ public class DiscordBotApplication
 
         new EchoCommand(this.gateway, this.eventManagement.getEventManager()).register();
         new DisplayScheduleCommand(this.gateway, this.eventManagement.getEventManager(), lectureDao).register();
+        new PollCommand(this.gateway, this.eventManagement.getEventManager(), pollsDao).register();
     }
 }
