@@ -99,7 +99,7 @@ public class ScheduleService
                     .forEach(this.lectureRepository::save);
         }
 
-        if (!updatedLectures.isEmpty())
+        if (updatedLectures.values().stream().anyMatch(updates -> !updates.isEmpty()))
             this.eventManager.handle(manager -> new ScheduleUpdateEvent(updatedLectures));
 
         ScheduleService.log.debug("Lecture updates applied.");
