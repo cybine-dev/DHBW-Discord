@@ -139,8 +139,6 @@ class EventHandlerInfoTest
                 .orElse(null);
 
         EventHandlerInfo info = Assertions.assertDoesNotThrow(( ) -> new EventHandlerInfo(listener, handler));
-
-        Assertions.assertEquals(ignoreCanceled, info.ignoreCanceled());
     }
 
     static Stream<Arguments> provideMatchData( )
@@ -255,7 +253,7 @@ class EventHandlerInfoTest
         public void onCancelableEvent(CancelableEvent event)
         { }
 
-        @EventHandler(name = "test", ignoreCanceled = true, priority = 10, matchExact = true)
+        @EventHandler(name = "test", priority = 10, matchExact = true)
         public void onCustomSettings(Event event)
         { }
 
