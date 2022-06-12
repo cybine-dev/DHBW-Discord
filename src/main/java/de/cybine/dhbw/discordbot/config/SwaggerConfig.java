@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 public class SwaggerConfig
 {
     public static final String UPDATE_ENDPOINT_TAG = "Update service";
+    public static final String TIMED_ENDPOINT_TAG  = "Scheduler service";
 
     @Bean
     public Docket botApi( )
