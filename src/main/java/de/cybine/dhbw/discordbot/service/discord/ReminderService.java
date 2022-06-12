@@ -35,12 +35,9 @@ public class ReminderService
 
     public Collection<LectureDto> postWeeklySchedule( )
     {
-        LocalDate date = LocalDate.now();
-        if (date.getDayOfWeek() != DayOfWeek.SUNDAY)
-            date = date.plus(1, ChronoUnit.WEEKS);
-
+        LocalDate date = LocalDate.now().plus(1, ChronoUnit.WEEKS);
         LocalDateTime beginOfWeek = date.with(DayOfWeek.MONDAY).atStartOfDay();
-        LocalDateTime endOfWeek = date.with(DayOfWeek.SATURDAY).plus(2, ChronoUnit.DAYS).atStartOfDay();
+        LocalDateTime endOfWeek = date.with(DayOfWeek.SUNDAY).plus(1, ChronoUnit.DAYS).atStartOfDay();
 
         Collection<LectureDto> lectures = this.lectureRepository.findByStartDate(beginOfWeek, endOfWeek);
         if (lectures.isEmpty())
