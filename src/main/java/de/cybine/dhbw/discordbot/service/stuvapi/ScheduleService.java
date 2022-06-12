@@ -21,9 +21,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ScheduleService
 {
-    private final StuvApiConfig stuvApiConfig;
-    private final StuvAPI       stuvAPI;
-    private final EventManager  eventManager;
+    private final StuvApiConfig        stuvApiConfig;
+    private final StuvAPI              stuvAPI;
+    private final EventManager         eventManager;
 
     private final IRoomDao         roomRepository;
     private final ILectureDao      lectureRepository;
