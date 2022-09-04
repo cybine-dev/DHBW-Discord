@@ -35,7 +35,7 @@ public class DiscordListener implements IEventListener
     {
         this.eventMapper.toCloudEvent(event)
                 .ifPresent(eventData -> this.connection.publish(NatsMessage.builder()
-                        .subject("bot")
+                        .subject(this.botConfig.getNatsChannel())
                         .data(EventFormatProvider.getInstance()
                                 .resolveFormat(JsonFormat.CONTENT_TYPE)
                                 .serialize(eventData))

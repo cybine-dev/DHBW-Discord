@@ -8,7 +8,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.cybine.dhbw.discordbot.listener.CommandRegistrationListener;
 import de.cybine.dhbw.discordbot.listener.DiscordListener;
 import de.cybine.dhbw.discordbot.listener.NatsListener;
-import de.cybine.dhbw.discordbot.listener.stuvapi.ScheduleRefreshListener;
 import de.cybine.dhbw.discordbot.listener.stuvapi.ScheduleUpdateListener;
 import de.cybine.dhbw.discordbot.util.event.EventGroup;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
@@ -37,14 +36,13 @@ public class EventManagement
     private final Collection<IEventListener> listeners;
 
     public EventManagement(EventManager eventManager, CloudEventMapper eventMapper,
-            CommandRegistrationListener commandRegistrationListener, ScheduleRefreshListener scheduleRefreshListener,
-            ScheduleUpdateListener scheduleUpdateListener, DiscordListener discordListener, NatsListener natsListener)
+            CommandRegistrationListener commandRegistrationListener, ScheduleUpdateListener scheduleUpdateListener,
+            DiscordListener discordListener, NatsListener natsListener)
     {
         this.eventManager = eventManager;
         this.eventMapper = eventMapper;
         this.listeners = new ArrayList<>();
         this.listeners.add(commandRegistrationListener);
-        this.listeners.add(scheduleRefreshListener);
         this.listeners.add(scheduleUpdateListener);
         this.listeners.add(discordListener);
         this.listeners.add(natsListener);

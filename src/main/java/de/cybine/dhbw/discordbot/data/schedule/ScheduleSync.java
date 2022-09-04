@@ -1,20 +1,21 @@
 package de.cybine.dhbw.discordbot.data.schedule;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.UUID;
 
 @Getter
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(builderClassName = "Builder")
-public class RoomDto
+@Table(name = "processed_syncs")
+public class ScheduleSync
 {
+    @Id
     private UUID id;
-
-    private String name;
-    private String displayName;
 }

@@ -1,47 +1,68 @@
 package de.cybine.dhbw.discordbot.data.schedule;
 
+import discord4j.core.spec.EmbedCreateSpec;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-@Data
-@Entity
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "lectures")
-@Builder(toBuilder = true)
+@Builder(builderClassName = "Builder")
 public class LectureDto
 {
-    @Id
-    @Column(name = "id")
-    private long id;
+    private UUID id;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-    @Column(name = "started_at", nullable = false)
-    private LocalDateTime startsAt;
-    @Column(name = "ends_at")
-    private LocalDateTime endsAt;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
+    private ZonedDateTime startsAt;
+    private ZonedDateTime endsAt;
 
-    @Column(name = "name", nullable = false)
     private String name;
-    @Column(name = "course")
     private String course;
-    @Column(name = "lecturer")
     private String lecturer;
-    @Column(name = "type", nullable = false)
     private Type   type;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "lecture_rooms",
-               joinColumns = { @JoinColumn(name = "lecture_id") },
-               inverseJoinColumns = { @JoinColumn(name = "room_name") })
     private Collection<RoomDto> rooms;
+
+    public Optional<String> getCourse( )
+    {
+        return Optional.ofNullable(this.course);
+    }
+
+    public Optional<String> getLecturer( )
+    {
+        return Optional.ofNullable(this.lecturer);
+    }
+
+    public EmbedCreateSpec.Builder toEmbedBuilder( )
+    {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy kk:mm");
+        EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder()
+                .title(this.getName())
+                .addField("Beginn", this.getStartsAt().format(formatter), true)
+                .addField("Ende", this.getEndsAt().format(formatter), true)
+                .timestamp(Instant.now())
+                .author("Cybine",
+                        null,
+                        "https://cdn.discordapp.com/avatars/801905875543392267/13f8dd94bc23e5ad3525addad54345b6.webp")
+                .footer("Powered by StuvAPI-Relay", null);
+
+        if (!this.getRooms().isEmpty())
+            builder.addField("Räume",
+                    this.getRooms().stream().map(RoomDto::getName).collect(Collectors.joining("\n")),
+                    false);
+
+        return builder;
+    }
 
     public enum Type
     {

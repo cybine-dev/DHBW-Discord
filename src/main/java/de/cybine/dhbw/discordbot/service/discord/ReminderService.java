@@ -1,9 +1,9 @@
 package de.cybine.dhbw.discordbot.service.discord;
 
+import de.cybine.dhbw.discordbot.api.external.StuvAPIRelay;
 import de.cybine.dhbw.discordbot.config.BotConfig;
+import de.cybine.dhbw.discordbot.config.StuvApiConfig;
 import de.cybine.dhbw.discordbot.data.schedule.LectureDto;
-import de.cybine.dhbw.discordbot.data.schedule.RoomDto;
-import de.cybine.dhbw.discordbot.repository.stuvapi.ILectureDao;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -11,17 +11,14 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.rest.util.Color;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.io.IOException;
+import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Component
@@ -31,9 +28,11 @@ public class ReminderService
     private final BotConfig            botConfig;
     private final GatewayDiscordClient gateway;
 
-    private final ILectureDao lectureRepository;
+    private final StuvApiConfig stuvApiConfig;
+    private final StuvAPIRelay  stuvAPIRelay;
 
-    public Collection<LectureDto> postWeeklySchedule( )
+    @Scheduled(cron = "0 0 12 * * SUN")
+    public void postWeeklySchedule( ) throws IOException, InterruptedException
     {
         LocalDate date = LocalDate.now();
         if (date.getDayOfWeek() != DayOfWeek.SUNDAY)
@@ -41,20 +40,16 @@ public class ReminderService
 
         LocalDateTime beginOfWeek = date.with(DayOfWeek.MONDAY).atStartOfDay();
         LocalDateTime endOfWeek = date.with(DayOfWeek.SATURDAY).plus(2, ChronoUnit.DAYS).atStartOfDay();
+        Collection<LectureDto> lectures = this.stuvAPIRelay.fetchLectures(this.stuvApiConfig.courseName(),
+                beginOfWeek,
+                endOfWeek);
 
-        Collection<LectureDto> lectures = this.lectureRepository.findByStartDate(beginOfWeek, endOfWeek);
         if (lectures.isEmpty())
-            return lectures;
+            return;
 
         Map<LocalDate, Collection<LectureDto>> dailyLectures = new HashMap<>();
-        for (LectureDto lecture : lectures)
-        {
-            LocalDate day = lecture.getStartsAt().toLocalDate();
-            if (!dailyLectures.containsKey(day))
-                dailyLectures.put(day, new ArrayList<>());
-
-            dailyLectures.get(day).add(lecture);
-        }
+        lectures.forEach(lecture -> dailyLectures.computeIfAbsent(lecture.getStartsAt().toLocalDate(),
+                key -> new ArrayList<>()).add(lecture));
 
         this.gateway.getChannelById(this.botConfig.notificationChannelId())
                 .subscribe(channel -> dailyLectures.entrySet()
@@ -65,41 +60,19 @@ public class ReminderService
                                         entries.getKey()
                                                 .getDayOfWeek()
                                                 .getDisplayName(TextStyle.FULL_STANDALONE, Locale.GERMAN)))
-                                .embeds(this.lecturesToEmbeds(entries.getValue()))
+                                .embeds(entries.getValue().stream().map(this::getLectureEmbed).toList())
                                 .build()).block()));
-
-        return lectures;
     }
 
-    private Collection<EmbedCreateSpec> lecturesToEmbeds(Collection<LectureDto> lectures)
+    private EmbedCreateSpec getLectureEmbed(LectureDto lecture)
     {
-        return lectures.stream().map(this::lectureToEmbed).toList();
-    }
-
-    private EmbedCreateSpec lectureToEmbed(LectureDto lectureDto)
-    {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy kk:mm");
-        EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder()
-                .title(lectureDto.getName())
-                .addField("Beginn", lectureDto.getStartsAt().format(formatter), true)
-                .addField("Ende", lectureDto.getEndsAt().format(formatter), true)
-                .timestamp(Instant.now())
-                .author("Cybine",
-                        null,
-                        "https://cdn.discordapp.com/avatars/801905875543392267/13f8dd94bc23e5ad3525addad54345b6.webp")
-                .footer("Powered by StuvAPI", null);
-
-        switch (lectureDto.getType())
+        EmbedCreateSpec.Builder builder = lecture.toEmbedBuilder();
+        switch (lecture.getType())
         {
             case ONLINE -> builder.color(Color.BLUE);
             case HYBRID -> builder.color(Color.DEEP_LILAC);
             default -> builder.color(Color.ORANGE);
         }
-
-        if (!lectureDto.getRooms().isEmpty())
-            builder.addField("Räume",
-                    lectureDto.getRooms().stream().map(RoomDto::getName).collect(Collectors.joining("\n")),
-                    false);
 
         return builder.build();
     }

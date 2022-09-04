@@ -24,6 +24,7 @@ public class StuvApiLectureResponseEventMapper
         if (data.getData() == null)
             throw new IllegalArgumentException();
 
+        System.out.println(new String(data.getData().toBytes()));
         PojoCloudEventData<StuvApiLectureResponseEvent> pojoData = CloudEventUtils.mapData(data,
                 PojoCloudEventDataMapper.from(mapper, StuvApiLectureResponseEvent.class));
 

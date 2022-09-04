@@ -1,8 +1,9 @@
 package de.cybine.dhbw.discordbot;
 
+import de.cybine.dhbw.discordbot.api.external.StuvAPIRelay;
 import de.cybine.dhbw.discordbot.command.DisplayScheduleCommand;
 import de.cybine.dhbw.discordbot.command.EchoCommand;
-import de.cybine.dhbw.discordbot.repository.stuvapi.ILectureDao;
+import de.cybine.dhbw.discordbot.config.StuvApiConfig;
 import de.cybine.dhbw.discordbot.service.event.EventManagement;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -11,11 +12,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 @Component
+@EnableScheduling
 @SpringBootApplication
 @RequiredArgsConstructor
 @EnableJpaRepositories(basePackages = { "de.cybine.dhbw.discordbot" })
@@ -31,7 +34,8 @@ public class DiscordBotApplication
 
     private final GatewayDiscordClient gateway;
 
-    private final ILectureDao lectureDao;
+    private final StuvApiConfig stuvApiConfig;
+    private final StuvAPIRelay  stuvAPIRelay;
 
     @PostConstruct
     private void startBot( )
@@ -43,6 +47,9 @@ public class DiscordBotApplication
                 .subscribe(event -> this.eventManagement.getEventManager().handle(manager -> event));
 
         new EchoCommand(this.gateway, this.eventManagement.getEventManager()).register();
-        new DisplayScheduleCommand(this.gateway, this.eventManagement.getEventManager(), lectureDao).register();
+        new DisplayScheduleCommand(this.gateway,
+                this.eventManagement.getEventManager(),
+                this.stuvApiConfig,
+                this.stuvAPIRelay).register();
     }
 }
