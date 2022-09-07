@@ -1,4 +1,4 @@
-package de.cybine.dhbw.discordbot.service.discord;
+package de.cybine.dhbw.discordbot.service.stuvapi;
 
 import de.cybine.dhbw.discordbot.api.external.StuvAPIRelay;
 import de.cybine.dhbw.discordbot.config.BotConfig;

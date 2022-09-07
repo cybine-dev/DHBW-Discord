@@ -3,7 +3,7 @@ package de.cybine.dhbw.discordbot.command;
 import de.cybine.dhbw.discordbot.api.external.StuvAPIRelay;
 import de.cybine.dhbw.discordbot.config.StuvApiConfig;
 import de.cybine.dhbw.discordbot.data.schedule.LectureDto;
-import de.cybine.dhbw.discordbot.service.stuvapi.event.CommandRegistrationEvent;
+import de.cybine.dhbw.discordbot.service.discord.event.CommandRegistrationEvent;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;

@@ -1,4 +1,4 @@
-package de.cybine.dhbw.discordbot.listener.stuvapi;
+package de.cybine.dhbw.discordbot.listener;
 
 import de.cybine.dhbw.discordbot.config.BotConfig;
 import de.cybine.dhbw.discordbot.data.schedule.LectureDto;

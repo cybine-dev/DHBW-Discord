@@ -1,7 +1,7 @@
 package de.cybine.dhbw.discordbot.listener;
 
 import de.cybine.dhbw.discordbot.config.BotConfig;
-import de.cybine.dhbw.discordbot.service.stuvapi.event.CommandRegistrationEvent;
+import de.cybine.dhbw.discordbot.service.discord.event.CommandRegistrationEvent;
 import de.cybine.dhbw.discordbot.util.event.EventHandler;
 import de.cybine.dhbw.discordbot.util.event.IEventListener;
 import discord4j.core.DiscordClient;
