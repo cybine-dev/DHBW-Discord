@@ -1,8 +1,7 @@
-package de.cybine.dhbw.discordbot.listener.stuvapi;
+package de.cybine.dhbw.discordbot.listener;
 
 import de.cybine.dhbw.discordbot.config.BotConfig;
 import de.cybine.dhbw.discordbot.data.schedule.LectureDto;
-import de.cybine.dhbw.discordbot.data.schedule.RoomDto;
 import de.cybine.dhbw.discordbot.data.schedule.UpdateType;
 import de.cybine.dhbw.discordbot.service.stuvapi.event.ScheduleUpdateEvent;
 import de.cybine.dhbw.discordbot.util.event.EventHandler;
@@ -13,15 +12,13 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.rest.util.Color;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class ScheduleUpdateListener implements IEventListener
@@ -33,11 +30,12 @@ public class ScheduleUpdateListener implements IEventListener
     @EventHandler
     public void onScheduleUpdate(ScheduleUpdateEvent event)
     {
+        log.info("Processing schedule sync with id {}", event.syncId());
         this.gateway.getChannelById(this.botConfig.notificationChannelId())
                 .subscribe(channel -> ((TextChannel) channel).createMessage(MessageCreateSpec.builder()
-                        .content(String.format("<@&%s>\nEs gibt neue Änderungen im Vorlesungsplan:",
+                        .content(String.format("<@&%s>%nEs gibt neue Änderungen im Vorlesungsplan:",
                                 this.botConfig.notificationRoleId().asString()))
-                        .embeds(event.getUpdatedLectures()
+                        .embeds(event.updatedLectures()
                                 .entrySet()
                                 .stream()
                                 .map(update -> this.buildUpdateEmbeds(update.getKey(), update.getValue()))
@@ -48,38 +46,19 @@ public class ScheduleUpdateListener implements IEventListener
 
     private List<EmbedCreateSpec> buildUpdateEmbeds(UpdateType type, Collection<LectureDto> lectures)
     {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy kk:mm");
-        List<EmbedCreateSpec> embeds = new ArrayList<>();
-        for (LectureDto lecture : lectures)
-        {
-            EmbedCreateSpec.Builder builder = this.insertUpdateTypeSpecificEmbedData(EmbedCreateSpec.builder(), type)
-                    .title(lecture.getName())
-                    .addField("Beginn", lecture.getStartsAt().format(formatter), true)
-                    .addField("Ende", lecture.getEndsAt().format(formatter), true)
-                    .timestamp(Instant.now())
-                    .author("Cybine",
-                            null,
-                            "https://cdn.discordapp.com/avatars/801905875543392267/13f8dd94bc23e5ad3525addad54345b6.webp")
-                    .footer("Powered by StuvAPI", null);
-
-            if (!lecture.getRooms().isEmpty())
-                builder.addField("Räume",
-                        lecture.getRooms().stream().map(RoomDto::getName).collect(Collectors.joining("\n")),
-                        false);
-
-            embeds.add(builder.build());
-        }
-
-        return embeds;
+        return lectures.stream()
+                .map(lecture -> this.insertUpdateTypeSpecificEmbedData(lecture.toEmbedBuilder(), type).build())
+                .toList();
     }
 
     private EmbedCreateSpec.Builder insertUpdateTypeSpecificEmbedData(EmbedCreateSpec.Builder builder, UpdateType type)
     {
+        String statusFieldName = "Status";
         return switch (type)
                 {
-                    case CREATED -> builder.color(Color.GREEN).addField("Status", "Neu", false);
-                    case UPDATED -> builder.color(Color.ORANGE).addField("Status", "Update", false);
-                    case DELETED -> builder.color(Color.RED).addField("Status", "Entfernt", false);
+                    case CREATED -> builder.color(Color.GREEN).addField(statusFieldName, "Neu", false);
+                    case UPDATED -> builder.color(Color.ORANGE).addField(statusFieldName, "Update", false);
+                    case DELETED -> builder.color(Color.RED).addField(statusFieldName, "Entfernt", false);
                 };
     }
 }

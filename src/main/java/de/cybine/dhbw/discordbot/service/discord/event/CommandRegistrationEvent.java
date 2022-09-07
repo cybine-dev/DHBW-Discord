@@ -1,4 +1,4 @@
-package de.cybine.dhbw.discordbot.service.stuvapi.event;
+package de.cybine.dhbw.discordbot.service.discord.event;
 
 import de.cybine.dhbw.discordbot.util.event.IEvent;
 import discord4j.discordjson.json.ApplicationCommandRequest;

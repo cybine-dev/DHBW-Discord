@@ -12,9 +12,9 @@ public class StuvApiConfig
 {
     private final Environment env;
 
-    public String stuvApiUrl()
+    public String stuvApiRelayUrl()
     {
-        return this.env.getRequiredProperty("api.stuv.url", String.class);
+        return this.env.getRequiredProperty("api.stuv-relay.url", String.class);
     }
 
     public String courseName( )

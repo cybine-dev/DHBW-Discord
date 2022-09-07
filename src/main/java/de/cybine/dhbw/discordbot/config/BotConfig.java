@@ -37,4 +37,9 @@ public class BotConfig
     {
         return Snowflake.of(this.env.getRequiredProperty("bot.role.notification", Long.class));
     }
+
+    public String getNatsChannel()
+    {
+        return this.env.getRequiredProperty("bot.nats.channel", String.class);
+    }
 }

@@ -1,5 +1,6 @@
 package de.cybine.dhbw.discordbot.listener;
 
+import de.cybine.dhbw.discordbot.config.BotConfig;
 import de.cybine.dhbw.discordbot.util.event.EventHandler;
 import de.cybine.dhbw.discordbot.util.event.EventManager;
 import de.cybine.dhbw.discordbot.util.event.IEventListener;
@@ -20,6 +21,8 @@ import javax.annotation.PostConstruct;
 @RequiredArgsConstructor
 public class NatsListener implements IEventListener
 {
+    private final BotConfig botConfig;
+
     private final EventManager     eventManager;
     private final CloudEventMapper eventMapper;
 
@@ -30,7 +33,7 @@ public class NatsListener implements IEventListener
     {
         this.connection.createDispatcher(message -> this.eventManager.handle(manager -> EventFormatProvider.getInstance()
                 .resolveFormat(JsonFormat.CONTENT_TYPE)
-                .deserialize(message.getData()))).subscribe("bot");
+                .deserialize(message.getData()))).subscribe(this.botConfig.getNatsChannel());
     }
 
     @SneakyThrows
