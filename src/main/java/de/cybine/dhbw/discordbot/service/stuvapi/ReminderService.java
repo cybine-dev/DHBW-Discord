@@ -34,12 +34,9 @@ public class ReminderService
     @Scheduled(cron = "0 0 12 * * SUN")
     public void postWeeklySchedule( ) throws IOException, InterruptedException
     {
-        LocalDate date = LocalDate.now();
-        if (date.getDayOfWeek() != DayOfWeek.SUNDAY)
-            date = date.plus(1, ChronoUnit.WEEKS);
-
+        LocalDate date = LocalDate.now().plus(1, ChronoUnit.WEEKS);
         LocalDateTime beginOfWeek = date.with(DayOfWeek.MONDAY).atStartOfDay();
-        LocalDateTime endOfWeek = date.with(DayOfWeek.SATURDAY).plus(2, ChronoUnit.DAYS).atStartOfDay();
+        LocalDateTime endOfWeek = date.with(DayOfWeek.SUNDAY).plus(1, ChronoUnit.DAYS).atStartOfDay();
         Collection<LectureDto> lectures = this.stuvAPIRelay.fetchLectures(this.stuvApiConfig.courseName(),
                 beginOfWeek,
                 endOfWeek);
