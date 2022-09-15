@@ -18,10 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Log4j2
 @Component
@@ -56,32 +53,42 @@ public class StuvAPIRelay
                 .toList();
     }
 
-    @SuppressWarnings("unchecked")
-    public LectureDto fetchLecture(UUID id) throws IOException, InterruptedException
-    {
-        URI uri = UriComponentsBuilder.fromUriString(this.config.stuvApiRelayUrl())
-                .path(String.format("/api/v1/lecture/%s", id))
-                .build()
-                .toUri();
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).build(),
-                HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-        if (response.statusCode() != HttpURLConnection.HTTP_OK)
-            throw new IllegalStateException(String.format("Could not query data. (%s)", uri));
-
-        return this.parseLecture(this.objectMapper.readValue(response.body(), Map.class));
-    }
-
-    @SuppressWarnings("unchecked")
     public List<ScheduleSyncDto> fetchSyncs( ) throws IOException, InterruptedException
     {
         URI uri = UriComponentsBuilder.fromUriString(this.config.stuvApiRelayUrl())
-                .path("/api/v1/sync/all")
+                .path("/api/v1/sync")
                 .build()
                 .toUri();
 
+        return this.fetchAllPaginationItems(uri).stream().map(this::parseScheduleSync).toList();
+    }
+
+    public List<LectureSyncDto> fetchSyncDetails(UUID syncId) throws IOException, InterruptedException
+    {
+        URI uri = UriComponentsBuilder.fromUriString(this.config.stuvApiRelayUrl())
+                .path(String.format("/api/v1/sync/%s", syncId))
+                .build()
+                .toUri();
+
+        return this.fetchAllPaginationItems(uri).stream().map(this::parseLectureSync).toList();
+    }
+
+    private List<Map<String, Object>> fetchAllPaginationItems(URI uri) throws IOException, InterruptedException
+    {
+        PaginationResult<Map<String, Object>> result = this.fetchPaginationItems(uri);
+        List<Map<String, Object>> data = new ArrayList<>(result.getItems());
+        while (result.hasNext())
+        {
+            result = this.fetchPaginationItems(URI.create(result.getNext().orElseThrow()));
+            data.addAll(result.getItems());
+        }
+
+        return data;
+    }
+
+    @SuppressWarnings("unchecked")
+    private PaginationResult<Map<String, Object>> fetchPaginationItems(URI uri) throws IOException, InterruptedException
+    {
         HttpClient client = HttpClient.newHttpClient();
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -89,10 +96,14 @@ public class StuvAPIRelay
         if (response.statusCode() != HttpURLConnection.HTTP_OK)
             throw new IllegalStateException(String.format("Could not query data. (%s)", uri));
 
-        return this.objectMapper.readValue(response.body(), List.class)
-                .stream()
-                .map(data -> this.parseScheduleSync((Map<String, Object>) data))
-                .toList();
+        Map<String, Object> data = this.objectMapper.readValue(response.body(), Map.class);
+        return PaginationResult.<Map<String, Object>>builder()
+                .total((int) data.get("total"))
+                .limit((int) data.get("limit"))
+                .offset((int) data.get("offset"))
+                .next((String) data.get("next"))
+                .items((Collection<Map<String, Object>>) data.get("items"))
+                .build();
     }
 
     @SuppressWarnings("unchecked")
@@ -123,16 +134,13 @@ public class StuvAPIRelay
                 .build();
     }
 
-    @SuppressWarnings("unchecked")
     private ScheduleSyncDto parseScheduleSync(Map<String, Object> data)
     {
         return ScheduleSyncDto.builder()
                 .id(UUID.fromString((String) data.get("id")))
                 .startedAt(ZonedDateTime.parse((String) data.get("startedAt"), DateTimeFormatter.ISO_DATE_TIME))
                 .finishedAt(ZonedDateTime.parse((String) data.get("finishedAt"), DateTimeFormatter.ISO_DATE_TIME))
-                .data(((List<?>) data.get("data")).stream()
-                        .map(lectureSync -> this.parseLectureSync((Map<String, Object>) lectureSync))
-                        .toList())
+                .data(Collections.emptyList())
                 .build();
     }
 
