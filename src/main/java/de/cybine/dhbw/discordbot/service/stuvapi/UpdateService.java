@@ -49,10 +49,15 @@ public class UpdateService
             for (ScheduleSyncDto sync : remainingSyncs)
             {
                 session.persist(new ScheduleSync(sync.getId()));
-                List<LectureSyncDto> lectureSyncs = sync.getData()
+                List<LectureSyncDto> lectureSyncs = this.stuvAPIRelay.fetchSyncDetails(sync.getId())
                         .stream()
                         .filter(data -> this.config.courseName().equals(data.getLecture().getCourse().orElse(null)))
                         .toList();
+
+                log.info("Found {} lecture updates for course {} in schedule sync with id {}",
+                        lectureSyncs.size(),
+                        this.config.courseName(),
+                        sync.getId());
 
                 Map<UpdateType, Collection<LectureDto>> updates = new EnumMap<>(UpdateType.class);
                 for (LectureSyncDto syncData : lectureSyncs)
