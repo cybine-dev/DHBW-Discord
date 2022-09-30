@@ -32,16 +32,28 @@ public class ScheduleUpdateListener implements IEventListener
     {
         log.info("Processing schedule sync with id {}", event.syncId());
         this.gateway.getChannelById(this.botConfig.notificationChannelId())
-                .subscribe(channel -> ((TextChannel) channel).createMessage(MessageCreateSpec.builder()
-                        .content(String.format("<@&%s>%nEs gibt neue Änderungen im Vorlesungsplan:",
-                                this.botConfig.notificationRoleId().asString()))
-                        .embeds(event.updatedLectures()
-                                .entrySet()
-                                .stream()
-                                .map(update -> this.buildUpdateEmbeds(update.getKey(), update.getValue()))
-                                .flatMap(List::stream)
-                                .toList())
-                        .build()).block());
+                .subscribe(channel -> this.sendScheduleUpdate(event, (TextChannel) channel));
+    }
+
+    private void sendScheduleUpdate(ScheduleUpdateEvent event, TextChannel channel)
+    {
+        channel.createMessage(MessageCreateSpec.builder()
+                .content(String.format("<@&%s>%nEs gibt neue Änderungen im Vorlesungsplan:",
+                        this.botConfig.notificationRoleId().asString()))
+                .build()).block();
+
+        List<EmbedCreateSpec> embeds = event.updatedLectures()
+                .entrySet()
+                .stream()
+                .map(update -> this.buildUpdateEmbeds(update.getKey(), update.getValue()))
+                .flatMap(List::stream)
+                .toList();
+
+        int embedBatchSize = 10;
+        for (int i = 0; i < embeds.size(); i += embedBatchSize)
+            channel.createMessage(MessageCreateSpec.builder()
+                    .embeds(embeds.stream().skip(i).limit(embedBatchSize).toList())
+                    .build()).block();
     }
 
     private List<EmbedCreateSpec> buildUpdateEmbeds(UpdateType type, Collection<LectureDto> lectures)
