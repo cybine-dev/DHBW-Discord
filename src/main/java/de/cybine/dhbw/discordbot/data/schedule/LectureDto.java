@@ -45,7 +45,7 @@ public class LectureDto
 
     public EmbedCreateSpec.Builder toEmbedBuilder( )
     {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy kk:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder()
                 .title(this.getName())
                 .addField("Beginn", this.getStartsAt().format(formatter), true)

@@ -19,6 +19,8 @@ import lombok.AllArgsConstructor;
 import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -63,12 +65,12 @@ public class DisplayScheduleCommand
                     .orElseThrow();
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            LocalDate fromDate = LocalDate.parse(date, formatter);
-            LocalDate toDate = fromDate.plus(1, ChronoUnit.DAYS);
+            ZonedDateTime fromDate = LocalDate.parse(date, formatter).atStartOfDay(ZoneId.systemDefault());
+            ZonedDateTime untilDate = fromDate.plus(1, ChronoUnit.DAYS);
 
             List<LectureDto> lectures = this.stuvAPIRelay.fetchLectures(this.config.courseName(),
-                    fromDate.atStartOfDay(),
-                    toDate.atStartOfDay());
+                    fromDate.plus(2, ChronoUnit.HOURS),
+                    untilDate.minus(2, ChronoUnit.HOURS));
             if (lectures.isEmpty())
             {
                 event.reply(String.format("Es wurden keine Vorlesungen für den %s gefunden.", date)).subscribe();
