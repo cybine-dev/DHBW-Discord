@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.*;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -34,9 +35,18 @@ public class ReminderService
     @Scheduled(cron = "0 0 12 * * SUN")
     public void postWeeklySchedule( ) throws IOException, InterruptedException
     {
-        LocalDate date = LocalDate.now().plus(1, ChronoUnit.WEEKS);
-        LocalDateTime beginOfWeek = date.with(DayOfWeek.MONDAY).atStartOfDay();
-        LocalDateTime endOfWeek = date.with(DayOfWeek.SUNDAY).plus(1, ChronoUnit.DAYS).atStartOfDay();
+        ZonedDateTime beginOfWeek = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .with(ChronoField.DAY_OF_WEEK, 1)
+                .plus(1, ChronoUnit.WEEKS)
+                .plus(2, ChronoUnit.HOURS);
+
+        ZonedDateTime endOfWeek = LocalDate.now()
+                .atStartOfDay(ZoneId.systemDefault())
+                .with(ChronoField.DAY_OF_WEEK, 5)
+                .plus(1, ChronoUnit.WEEKS)
+                .minus(2, ChronoUnit.HOURS);
+
         Collection<LectureDto> lectures = this.stuvAPIRelay.fetchLectures(this.stuvApiConfig.courseName(),
                 beginOfWeek,
                 endOfWeek);

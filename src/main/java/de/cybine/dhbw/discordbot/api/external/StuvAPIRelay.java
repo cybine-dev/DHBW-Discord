@@ -15,7 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,14 +29,14 @@ public class StuvAPIRelay
     private final ObjectMapper  objectMapper;
 
     @SuppressWarnings("unchecked")
-    public List<LectureDto> fetchLectures(String course, LocalDateTime from, LocalDateTime until)
+    public List<LectureDto> fetchLectures(String course, ZonedDateTime from, ZonedDateTime until)
             throws IOException, InterruptedException
     {
         URI uri = UriComponentsBuilder.fromUriString(this.config.stuvApiRelayUrl())
                 .path("/api/v1/lecture")
                 .queryParam("course", Optional.ofNullable(course))
-                .queryParam("from", Optional.ofNullable(from))
-                .queryParam("until", Optional.ofNullable(until))
+                .queryParam("from", this.parseDateParameter(from))
+                .queryParam("until", this.parseDateParameter(until))
                 .build()
                 .toUri();
 
@@ -166,5 +166,12 @@ public class StuvAPIRelay
                 .previousValue((String) data.get("previousValue"))
                 .currentValue((String) data.get("currentValue"))
                 .build();
+    }
+
+    private Optional<String> parseDateParameter(ZonedDateTime date)
+    {
+        return Optional.ofNullable(date)
+                .map(d -> d.withZoneSameInstant(ZoneId.of("UTC")))
+                .map(DateTimeFormatter.ISO_OFFSET_DATE_TIME::format);
     }
 }
