@@ -38,14 +38,14 @@ public class ReminderService
         ZonedDateTime beginOfWeek = LocalDate.now()
                 .atStartOfDay(ZoneId.systemDefault())
                 .with(ChronoField.DAY_OF_WEEK, 1)
-                .plus(1, ChronoUnit.WEEKS)
-                .plus(2, ChronoUnit.HOURS);
+                .with(ChronoField.HOUR_OF_DAY, 2)
+                .plus(1, ChronoUnit.WEEKS);
 
         ZonedDateTime endOfWeek = LocalDate.now()
                 .atStartOfDay(ZoneId.systemDefault())
                 .with(ChronoField.DAY_OF_WEEK, 5)
-                .plus(1, ChronoUnit.WEEKS)
-                .minus(2, ChronoUnit.HOURS);
+                .with(ChronoField.HOUR_OF_DAY, 22)
+                .plus(1, ChronoUnit.WEEKS);
 
         Collection<LectureDto> lectures = this.stuvAPIRelay.fetchLectures(this.stuvApiConfig.courseName(),
                 beginOfWeek,
