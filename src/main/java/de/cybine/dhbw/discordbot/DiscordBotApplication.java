@@ -1,6 +1,7 @@
 package de.cybine.dhbw.discordbot;
 
 import de.cybine.dhbw.discordbot.api.external.StuvAPIRelay;
+import de.cybine.dhbw.discordbot.command.CatCommand;
 import de.cybine.dhbw.discordbot.command.DisplayScheduleCommand;
 import de.cybine.dhbw.discordbot.command.EchoCommand;
 import de.cybine.dhbw.discordbot.config.StuvApiConfig;
@@ -47,6 +48,7 @@ public class DiscordBotApplication
                 .subscribe(event -> this.eventManagement.getEventManager().handle(manager -> event));
 
         new EchoCommand(this.gateway, this.eventManagement.getEventManager()).register();
+        new CatCommand(this.gateway, this.eventManagement.getEventManager()).register();
         new DisplayScheduleCommand(this.gateway,
                 this.eventManagement.getEventManager(),
                 this.stuvApiConfig,
