@@ -27,6 +27,6 @@ public class CatCommand {
         if (!event.getCommandName().equals("cat"))
             return;
 
-        event.reply("miau");
+        event.reply("miau").subscribe();
     }
 }
